@@ -1,0 +1,188 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace WindowsFormsApp7
+{
+    // Точка входу в програму
+    static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            // Запуск головної форми
+            Application.Run(new MainForm());
+        }
+    }
+
+    // Головна форма, де створюється інтерфейс і логіка роботи з "БД"
+    public class MainForm : Form
+    {
+        // Імітуємо базу даних за допомогою DataSet
+        DataSet ds = new DataSet();
+        DataTable dtPlants; // Таблиця лікувальних рослин
+        DataTable dtUses;   // Таблиця способів застосування
+
+        // UI елементи
+        DataGridView dgvReport;
+        TextBox txtPlantName;
+        Button btnInsert;
+        Button btnReport1;
+        Button btnReport2;
+        Button btnSearch;
+        Label lblSearch;
+
+        public MainForm()
+        {
+            this.Text = "Лікувальні рослини - Система";
+            this.Size = new Size(800, 600);
+            // Ініціалізація бази даних та елементів інтерфейсу
+            InitializeDatabase();
+            InitializeUI();
+        }
+
+        // Метод для створення таблиць (імітація бази даних)
+        private void InitializeDatabase()
+        {
+            // Створення таблиці MedicinalPlants
+            dtPlants = new DataTable("MedicinalPlants");
+            dtPlants.Columns.Add("ID", typeof(int));
+            dtPlants.Columns.Add("Name", typeof(string));
+            dtPlants.Columns.Add("Family", typeof(string));
+            dtPlants.Columns.Add("Description", typeof(string));
+            dtPlants.PrimaryKey = new DataColumn[] { dtPlants.Columns["ID"] };
+
+            // Створення таблиці Uses
+            dtUses = new DataTable("Uses");
+            dtUses.Columns.Add("ID", typeof(int));
+            dtUses.Columns.Add("PlantID", typeof(int));
+            dtUses.Columns.Add("UseDescription", typeof(string));
+            dtUses.PrimaryKey = new DataColumn[] { dtUses.Columns["ID"] };
+
+            // Додавання таблиць до DataSet
+            ds.Tables.Add(dtPlants);
+            ds.Tables.Add(dtUses);
+
+            // Створення зв’язку між таблицями (зовнішній ключ)
+            DataRelation relation = new DataRelation("Plant_Uses",
+                dtPlants.Columns["ID"], dtUses.Columns["PlantID"]);
+            ds.Relations.Add(relation);
+        }
+
+        // Метод для динамічного створення елементів інтерфейсу
+        private void InitializeUI()
+        {
+            // Кнопка для вставлення даних
+            btnInsert = new Button();
+            btnInsert.Text = "Вставити дані";
+            btnInsert.Location = new Point(20, 20);
+            btnInsert.Click += BtnInsert_Click;
+            this.Controls.Add(btnInsert);
+
+            // Кнопка для звіту 1: всі рослини
+            btnReport1 = new Button();
+            btnReport1.Text = "Звіт: Всі рослини";
+            btnReport1.Location = new Point(150, 20);
+            btnReport1.Click += BtnReport1_Click;
+            this.Controls.Add(btnReport1);
+
+            // Кнопка для звіту 2: рослини з родини Lamiaceae (наприклад)
+            btnReport2 = new Button();
+            btnReport2.Text = "Звіт: Родина Lamiaceae";
+            btnReport2.Location = new Point(300, 20);
+            btnReport2.Click += BtnReport2_Click;
+            this.Controls.Add(btnReport2);
+
+            // Мітка для поля пошуку
+            lblSearch = new Label();
+            lblSearch.Text = "Пошук за назвою:";
+            lblSearch.Location = new Point(20, 60);
+            lblSearch.AutoSize = true;
+            this.Controls.Add(lblSearch);
+
+            // Текстове поле для введення назви рослини для пошуку
+            txtPlantName = new TextBox();
+            txtPlantName.Location = new Point(150, 60);
+            txtPlantName.Width = 150;
+            this.Controls.Add(txtPlantName);
+
+            // Кнопка для пошуку
+            btnSearch = new Button();
+            btnSearch.Text = "Пошук";
+            btnSearch.Location = new Point(320, 60);
+            btnSearch.Click += BtnSearch_Click;
+            this.Controls.Add(btnSearch);
+
+            // DataGridView для виводу звітів
+            dgvReport = new DataGridView();
+            dgvReport.Location = new Point(20, 100);
+            dgvReport.Size = new Size(740, 400);
+            this.Controls.Add(dgvReport);
+        }
+
+        // Обробник події для кнопки "Вставити дані"
+        private void BtnInsert_Click(object sender, EventArgs e)
+        {
+            // Вставка прикладних даних у таблицю MedicinalPlants
+            dtPlants.Rows.Add(1, "М'ята", "Lamiaceae", "Охолоджує, знімає болі");
+            dtPlants.Rows.Add(2, "Ромашка", "Asteraceae", "Заспокоює, лікує шлунок");
+            dtPlants.Rows.Add(3, "Ехінацея", "Asteraceae", "Зміцнює імунітет");
+            dtPlants.Rows.Add(4, "Лаванда", "Lamiaceae", "Заспокоює нервову систему, має ароматерапевтичний ефект");
+            dtPlants.Rows.Add(5, "Календула", "Asteraceae", "Протизапальна, прискорює загоєння ран");
+            dtPlants.Rows.Add(6, "Алоє", "Asphodelaceae", "Зволожує шкіру, має загоювальні властивості");
+            dtPlants.Rows.Add(7, "Женьшень", "Araliaceae", "Підвищує життєву силу, зміцнює організм");
+            dtPlants.Rows.Add(8, "Бузина", "Adoxaceae", "Використовується при застуді та грипі");
+
+            // Вставка прикладних даних у таблицю Uses
+            dtUses.Rows.Add(1, 1, "Освіжаючий чай");
+            dtUses.Rows.Add(2, 2, "Настій для сну");
+            dtUses.Rows.Add(3, 3, "Добавка до супів");
+            dtUses.Rows.Add(4, 4, "Ароматерапія, ефірна олія");
+            dtUses.Rows.Add(5, 5, "Мазь для ран, настій");
+            dtUses.Rows.Add(6, 6, "Гель для шкіри");
+            dtUses.Rows.Add(7, 7, "Енергетичний напій, відвар");
+            dtUses.Rows.Add(8, 8, "Сироп для підвищення імунітету");
+
+            MessageBox.Show("Дані успішно вставлено!");
+        }
+
+        // Обробник події для кнопки "Звіт: Всі рослини"
+        private void BtnReport1_Click(object sender, EventArgs e)
+        {
+            // Виведення всіх даних з таблиці MedicinalPlants
+            dgvReport.DataSource = dtPlants;
+        }
+
+        // Обробник події для кнопки "Звіт: Родина Lamiaceae"
+        private void BtnReport2_Click(object sender, EventArgs e)
+        {
+            // Фільтрація даних за родиною "Lamiaceae"
+            DataView dv = new DataView(dtPlants);
+            dv.RowFilter = "Family = 'Lamiaceae'";
+            dgvReport.DataSource = dv;
+        }
+
+        // Обробник події для кнопки "Пошук"
+        private void BtnSearch_Click(object sender, EventArgs e)
+        {
+            // Пошук за назвою рослини (часткове співпадіння)
+            string searchText = txtPlantName.Text.Trim();
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                DataView dv = new DataView(dtPlants);
+                dv.RowFilter = $"Name LIKE '%{searchText}%'";
+                dgvReport.DataSource = dv;
+            }
+            else
+            {
+                MessageBox.Show("Введіть назву для пошуку.");
+            }
+        }
+    }
+}
